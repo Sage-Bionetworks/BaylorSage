@@ -1,9 +1,18 @@
 # Place for RNAseq reprocessing Code
 
+#come up with conventions for naming propagations
+
 
 #FASTQ generation
 
 BAM files were reverted to FASTQ using picard.
+
+#FASTQ QC
+Basic Fastqc
+1) Number of repetitive elements
+2) Sequencing quality
+
+Use the outputs for trimming of reads if necessary.
 
 #Alignment
 ##Human
@@ -17,6 +26,9 @@ FASTQ files were aligned to dm6 with UCSC gene models using STAR/2.5.1b.
 
 ##iPSC
 FASTQ files were aligned to GRCh38 with Gencode24 gene models using STAR/2.5.1b.
+
+#Alignment Metrics
+Output from STAR/TopHat
 
 Quantitation
 ##Human and iPSC
