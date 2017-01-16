@@ -20,10 +20,10 @@ FASTQ files were aligned to GRCh38 with Gencode24 gene models using STAR/2.5.1b.
 
 Quantitation
 ##Human and iPSC
-Alignments were counted to Gencode 24 gene models using star.
+Alignments were counted to Gencode 24 gene models using star - htseq
 
 ##Mouse
-Alignments were counted to Ensembl gene models using star
+Alignments were counted to Ensembl gene models using star - htseq
 
 ##Fruit fly
-Alignments were counted to UCSC gene models using star
+Alignments were counted to UCSC gene models using star - htseq
