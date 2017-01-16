@@ -39,4 +39,21 @@ synapseClient::synSetAnnotations(dataObj) <- annos
 require(githubr)
 
 
+dataObj <- synapseClient::synStore(dataObj,
+                                   executed = as.list(c('https://github.com/Sage-Bionetworks/BaylorSage/blob/master/exampleDataUploadToSynapseScript.R')),
+                                   used = as.list('syn8028939'))
+onWeb(dataObj)
 
+#download to default cache location
+baz <- synapseClient::synGet('syn8028972')
+loacationOfFile <- baz@filePath
+
+
+#download to a specific location
+baz <- synapseClient::synGet('syn8028972',downloadLocation = './')
+
+bazAnnotations <- synapseClient::synGetAnnotations(baz)
+
+rSynapseUtilities::makeTable(foo,
+                             'test table',
+                             'syn7342718')

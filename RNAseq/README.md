@@ -2,7 +2,6 @@
 
 #come up with conventions for naming propagations
 
-
 #FASTQ generation
 
 BAM files were reverted to FASTQ using picard.
@@ -39,3 +38,5 @@ Alignments were counted to Ensembl gene models using star - htseq
 
 ##Fruit fly
 Alignments were counted to UCSC gene models using star - htseq
+
+Voom normalization(?)
