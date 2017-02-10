@@ -31,10 +31,21 @@
       "provisioners": [
         {
           "type": "shell",
-          "scripts": ["software_provisioner.sh"],
+          "inline": ["yum update -y"],
           "pause_before": "10s",
           "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'"
+        },
+        {
+          "type": "shell",
+          "scripts": ["software_provisioner.sh"],
+          "pause_before": "10s"
+        },
+        {
+          "type": "shell",
+          "scripts": ["data_provisioner.sh"],
+          "pause_before": "10s"
         }
+
 
       ]
     }
