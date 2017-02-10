@@ -7,6 +7,10 @@ export PATH="$HOME/miniconda/bin:$PATH"
 # Add to ec2-user's path
 echo 'PATH="$HOME/miniconda/bin:$PATH"' >> $HOME/.bashrc
 
+conda config --add channels conda-forge
+conda config --add channels r
+conda config --add channels bioconda
+
 conda install -y star htseq fastqc
 
 mkdir $HOME/bin
