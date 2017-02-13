@@ -19,6 +19,8 @@ This instance has two provisioners:
   packer build packer/config.json
   ```
 
+If successful, this will create an Amazon AMI in your account that can be used to launch an Amazon EC2 instance.
+
 The system is designed to be used as a single user (`centos`). All software and data is installed for the this user.
 
 ## Debugging
