@@ -1,6 +1,6 @@
 ## Introduction
 
-[Packer](https://www.packer.io/) automates the creation of any type of machine image. Here, we use simple Bash scripts to provision an Amazon AMI and install necessary software and data. This requires an Amazon AWS account (https://aws.amazon.com).
+[Packer](https://www.packer.io/) automates the creation of any type of machine image. Here, we use Bash scripts to provision an Amazon AMI and install necessary software and data. This requires an [Amazon AWS account](https://aws.amazon.com).
 
 This instance has two provisioners:
 
@@ -9,6 +9,7 @@ This instance has two provisioners:
 
 ## Usage
 
+1. Create an [Amazon AWS account](https://aws.amazon.com).
 1. [Fork](http://help.github.com/fork-a-repo/) and clone this repository to your machine.
 1. Install [packer](http://www.packer.io/docs/installation.html).
 1. Amazon AWS credentials are required to be set as environment variables for `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`. 
