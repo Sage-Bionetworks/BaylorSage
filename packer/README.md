@@ -4,7 +4,7 @@
 
 This instance has two provisioners:
 
-1. [Software](software_provisioner.sh) which uses [Miniconda](https://conda.io/docs/) to install `fastqc`, `htseq`, and `STAR`. Because of licensing restrictions, `Picard` is downloaded from the Broad Institute.
+1. [Software](software_provisioner.sh) which uses [Miniconda](https://conda.io/docs/) to install `fastqc`, `htseq`, and `STAR` from the [Bioconda Channel](https://bioconda.github.io/). Because of licensing restrictions, `Picard` is downloaded from the Broad Institute.
 2. [Data](data_provisioner.sh) gets genomes and transcript gene models.
 
 ## Usage
