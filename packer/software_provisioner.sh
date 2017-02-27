@@ -12,6 +12,7 @@ conda config --add channels r
 conda config --add channels bioconda
 
 conda install -y star=2.5.1b htseq fastqc multiqc
+pip install synapseclient
 
 mkdir $HOME/bin
 wget https://github.com/broadinstitute/picard/releases/download/2.8.3/picard.jar -O $HOME/bin/picard.jar
