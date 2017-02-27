@@ -42,8 +42,9 @@
         },
         {
           "type": "shell",
-          "scripts": ["data_provisioner.sh"],
-          "pause_before": "10s"
+          "scripts": ["python3_provisioner.sh"],
+          "pause_before": "10s",
+          "execute_command": "{{ .Vars }} sudo -E sh '{{ .Path }}'"
         }
 
 
