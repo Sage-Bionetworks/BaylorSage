@@ -12,6 +12,7 @@
       "region": "us-east-1",
       "source_ami": "ami-e94328fe",
       "ssh_username": "centos",
+      "ssh_pty" : "true",
       "ami_name": "CentOS 7 - BaylorSage {{timestamp}}",
       "instance_type": "c3.4xlarge",
       "ami_block_device_mappings": [ {
