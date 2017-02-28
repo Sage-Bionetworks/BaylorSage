@@ -10,9 +10,9 @@
       "access_key": "{{user `aws_access_key`}}",
       "secret_key": "{{user `aws_secret_key`}}",
       "region": "us-east-1",
-      "source_ami": "ami-504b2047",
+      "source_ami": "ami-e94328fe",
       "ssh_username": "centos",
-      "ami_name": "CentOS 6 - BaylorSage {{timestamp}}",
+      "ami_name": "CentOS 7 - BaylorSage {{timestamp}}",
       "instance_type": "c3.4xlarge",
       "ami_block_device_mappings": [ {
         "device_name": "/dev/sda1",
