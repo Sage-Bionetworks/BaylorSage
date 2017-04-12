@@ -1,0 +1,85 @@
+import csv
+import os
+import synapseclient
+import synapseutils
+
+def get_filename(wildcards):
+    try:
+        filename = SAMPLE_DICT[wildcards[0]]['name']
+    except Exception as e:
+        print(e)
+        print(wildcards)
+        raise(e)
+
+    return filename
+
+def get_synid(wildcards):
+    try:
+        synid = SAMPLE_DICT[wildcards[0]]['id']
+    except Exception as e:
+        print(e)
+        print(wildcards)
+        raise(e)
+
+    return synid
+
+def get_sample_info(wildcards):
+    try:
+        info = SAMPLE_DICT[wildcards[0]]
+    except Exception as e:
+        print(e)
+        print(wildcards)
+        raise(e)
+
+    return info
+
+syn = synapseclient.login(silent=True)
+
+config = {}
+config['bam_file_view'] = 'syn8682065'
+
+bam_file_q = syn.tableQuery('select id,name,sampleIdentifier from %s where fileFormat="bam"' % (config['bam_file_view'], ))
+bam_file_list = list(csv.DictReader(open(bam_file_q.filepath)))
+
+nameIdDict = {x['name']: x['id'] for x in bam_file_list}
+SAMPLEDICT = {x['sampleIdentifier']: {'id': x['id'], 'name': x['name']}  for x in bam_file_list}
+BAMNAMELIST = nameIdDict.keys()
+BAMIDLIST = nameIdDict.values()
+
+rule all:
+    input:
+		a=expand('/home/centos/p_2/{sampleIdentifier}.R1.fastq',
+                 sampleIdentifier=SAMPLEDICT.keys())
+		# a=expand('/home/centos/p_2/{sampleIdentifier}.R1.fastq',
+        #          sampleIdentifier=SAMPLEDICT.keys())
+
+rule synapseget:
+	input:
+		#create a results folder 'p_2, 'p_2 is the folder where the output results are directed
+		bam=get_filename
+	output:
+		read1 = '/home/centos/p_2/{sampleIdentifier}.R1.fastq',
+		read2 = '/home/centos/p_2/{sampleIdentifier}.R2.fastq'
+	params:
+		samToFastqCmd='/home/centos/bin/picard.jar SamToFastq'
+
+	shell:
+		"""
+        synapse get {input.bam}
+		"""
+
+# rule convert_BAM_to_Fastq:
+# 	input:
+# 		#create a results folder 'p_2, 'p_2 is the folder where the output results are directed
+# 		bam=get_filename
+# 	output:
+# 		read1 = '/home/centos/p_2/{sampleIdentifier}.R1.fastq',
+# 		read2 = '/home/centos/p_2/{sampleIdentifier}.R2.fastq'
+# 	params:
+# 		samToFastqCmd='/home/centos/bin/picard.jar SamToFastq'
+#
+# 	shell:
+# 		"""
+#         synapse get {input.bam}
+# 		java  -jar {params.samToFastqCmd} I={input.bam} FASTQ={output.read1} SECOND_END_FASTQ={output.read2} VALIDATION_STRINGENCY=LENIENT
+# 		"""
