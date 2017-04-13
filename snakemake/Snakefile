@@ -37,49 +37,104 @@ syn = synapseclient.login(silent=True)
 
 config = {}
 config['bam_file_view'] = 'syn8682065'
+config['samToFastqCmd'] = '/home/centos/bin/picard.jar SamToFastq'
+config['starCmd'] = '/home/centos/miniconda/bin/STAR'
+config['samtoolsSortCmd'] = '/home/centos/miniconda/bin/samtools sort'
+config['transcripts'] = '/home/centos/data_2/mm10_ERCC92_tab.gtf'
+config['samtoolsViewCmd'] = '/home/centos/miniconda/bin/samtools view'
+config['htseqCmd'] = '/home/centos/miniconda/bin/htseq-count'
+config['fastQCCmd'] = '/home/centos/miniconda/FastQC/fastqc'
 
 bam_file_q = syn.tableQuery('select id,name,sampleIdentifier from %s where fileFormat="bam"' % (config['bam_file_view'], ))
 bam_file_list = list(csv.DictReader(open(bam_file_q.filepath)))
 
 nameIdDict = {x['name']: x['id'] for x in bam_file_list}
-SAMPLEDICT = {x['sampleIdentifier']: {'id': x['id'], 'name': x['name']}  for x in bam_file_list}
+SAMPLE_DICT = {x['sampleIdentifier']: {'id': x['id'], 'name': x['name']}  for x in bam_file_list}
 BAMNAMELIST = nameIdDict.keys()
 BAMIDLIST = nameIdDict.values()
 
 rule all:
     input:
-		a=expand('/home/centos/p_2/{sampleIdentifier}.R1.fastq',
-                 sampleIdentifier=SAMPLEDICT.keys())
-		# a=expand('/home/centos/p_2/{sampleIdentifier}.R1.fastq',
-        #          sampleIdentifier=SAMPLEDICT.keys())
+        expand('p_2/{sampleIdentifier}_FastQC', sampleIdentifier=SAMPLE_DICT.keys()),expand('p_2/{sampleIdentifier}_counts.txt', sampleIdentifier=SAMPLE_DICT.keys())
 
-rule synapseget:
-	input:
-		#create a results folder 'p_2, 'p_2 is the folder where the output results are directed
-		bam=get_filename
-	output:
-		read1 = '/home/centos/p_2/{sampleIdentifier}.R1.fastq',
-		read2 = '/home/centos/p_2/{sampleIdentifier}.R2.fastq'
-	params:
-		samToFastqCmd='/home/centos/bin/picard.jar SamToFastq'
+rule convert_BAM_to_Fastq:
+    input:
+        #create a results folder 'p_2, 'p_2 is the folder where the output results are directed
+        # A sentinel to register the samples to run
+        begin='p_2/{sampleIdentifier}.begin'
+    conda:
+        "environment.yaml"
+    output:
+        read1 = 'p_2/{sampleIdentifier}.R1.fastq',
+        read2 = 'p_2/{sampleIdentifier}.R2.fastq'
+    params:
+        samToFastqCmd=config['samToFastqCmd'],id=get_synid,filename=get_filename
+    shell:
+        """
+        synapse get {params.id} --downloadLocation p_2/
+        java -jar {params.samToFastqCmd} I=p_2/{params.filename} FASTQ={output.read1} SECOND_END_FASTQ={output.read2} VALIDATION_STRINGENCY=LENIENT
+        """
 
-	shell:
-		"""
-        synapse get {input.bam}
-		"""
+rule align_star:
+    input:
+        read1='p_2/{sampleIdentifier}.R1.fastq',
+        read2='p_2/{sampleIdentifier}.R2.fastq'
+    output:
+        a = 'p_2/{sampleIdentifier}_STAR_Aligned.sortedByCoord.out.bam'
+        #a = '{bamFile}_STAR_log'
+        #b = 'synId_STAR_Log.progress.out'
+        #c = 'synId_STAR_Log.final.out'
+        #d = 'synId_STAR_SJ.out.tab'
+        #e = 'synId_STAR_Log.out'
+    conda:
+        "environment.yaml"
+    params:
+        starCmd=config['starCmd'], genomeDir='/home/centos/data_2/STAR_MM10', outNamePrefix = '{sampleIdentifier}_STAR_', numThreads = '8'
+    shell:
+        """
+        {params.starCmd} --runThreadN {params.numThreads} --genomeDir {params.genomeDir} --outSAMtype BAM SortedByCoordinate --outFileNamePrefix {params.outNamePrefix} --readFilesIn {input.read1} {input.read2} ; \
+        """
 
-# rule convert_BAM_to_Fastq:
-# 	input:
-# 		#create a results folder 'p_2, 'p_2 is the folder where the output results are directed
-# 		bam=get_filename
-# 	output:
-# 		read1 = '/home/centos/p_2/{sampleIdentifier}.R1.fastq',
-# 		read2 = '/home/centos/p_2/{sampleIdentifier}.R2.fastq'
-# 	params:
-# 		samToFastqCmd='/home/centos/bin/picard.jar SamToFastq'
-#
-# 	shell:
-# 		"""
-#         synapse get {input.bam}
-# 		java  -jar {params.samToFastqCmd} I={input.bam} FASTQ={output.read1} SECOND_END_FASTQ={output.read2} VALIDATION_STRINGENCY=LENIENT
-# 		"""
+rule sort_by_read_name:
+    input:
+        bam = 'p_2/{sampleIdentifier}_STAR_Aligned.sortedByCoord.out.bam'
+    output:
+        bam = 'p_2/{sampleIdentifier}_STAR_Aligned.sortedByReadName.bam'
+    conda:
+        "environment.yaml"
+    params:
+        sortCmd = config['samtoolsSortCmd']
+    shell:
+        """
+        {params.sortCmd} -n -o {output.bam} {input.bam}
+        """
+
+rule count_reads_HTSeq:
+    input:
+        bam = 'p_2/{sampleIdentifier}_STAR_Aligned.sortedByReadName.bam'
+    output:
+        counts='p_2/{sampleIdentifier}_counts.txt'
+    conda:
+        "environment.yaml"
+    params:
+        TRANSCRIPTS = config['transcripts'], samToolsCmd = config['samtoolsViewCmd'], htseqCmd = config['htseqCmd']
+    shell:
+        """
+        {params.samToolsCmd} {input.bam} | {params.htseqCmd} -q -s no - {params.TRANSCRIPTS} > {output.counts}
+        """
+
+rule run_FastQC:
+    input:
+        read1 = 'p_2/{sampleIdentifier}.R1.fastq',
+        read2 = 'p_2/{sampleIdentifier}.R2.fastq',
+    output:
+        outputdir = 'p_2/{sampleIdentifier}_FastQC'
+    conda:
+        "environment.yaml"
+    params:
+        fastQCCmd = config['fastQCCmd']
+    shell:
+        """
+        {params.fastQCCmd} {input.read1} -o {output.outputdir}
+        {params.fastQCCmd} {input.read2} -o {output.outputdir}
+        """
