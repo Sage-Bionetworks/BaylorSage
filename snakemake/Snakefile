@@ -37,6 +37,7 @@ syn = synapseclient.login(silent=True)
 
 config = {}
 config['bam_file_view'] = 'syn8682065'
+config['outputDirectorySynapse'] = 'syn9725930'
 config['samToFastqCmd'] = '/home/centos/bin/picard.jar SamToFastq'
 config['starCmd'] = '/home/centos/miniconda/bin/STAR'
 config['samtoolsSortCmd'] = '/home/centos/miniconda/bin/samtools sort'
@@ -68,11 +69,14 @@ rule convert_BAM_to_Fastq:
         read1 = 'p_2/{sampleIdentifier}.R1.fastq',
         read2 = 'p_2/{sampleIdentifier}.R2.fastq'
     params:
-        samToFastqCmd=config['samToFastqCmd'],id=get_synid,filename=get_filename
+        samToFastqCmd=config['samToFastqCmd'],id=get_synid,filename=get_filename,outputDirectorySynapse=config['outputDirectorySynapse']
     shell:
         """
         synapse get {params.id} --downloadLocation p_2/
         java -jar {params.samToFastqCmd} I=p_2/{params.filename} FASTQ={output.read1} SECOND_END_FASTQ={output.read2} VALIDATION_STRINGENCY=LENIENT
+        synapse store {output.read1} --parentId {params.outputDirectorySynapse} --annotations '{{"species": "Human", "fileFormat": "bam", "individualId": "{sampleIdentifier}"}}'
+        synapse set-provenance 
+        synapse store {output.read2} --parentId {params.outputDirectorySynapse} --annotations '{{"species": "Human", "fileFormat": "bam", "individualId": "{sampleIdentifier}"}}'
         """
 
 rule align_star:
